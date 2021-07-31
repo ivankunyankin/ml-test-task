@@ -1,0 +1,26 @@
+---
+
+csv: train.csv
+data_dir: numbers2
+
+# Datasets
+train_data: train_data.csv
+val_data: val_data.csv
+
+weights: checkpoints/model_best.pt
+
+# Training
+epochs: 30
+val_size: 0.2
+batch_size: 32
+learning_rate: 1e-4  # constant learning rate value. Omitted if using OneCycleLR
+weight_decay: 0.0001
+checkpoint_dir: checkpoints/
+log_dir: logs/
+
+spec_params:
+  sr: 22050
+  n_mels: 64
+  n_fft: 320
+  win_length: 320
+  hop_length: 160
