@@ -14,7 +14,7 @@ epochs: 300
 val_size: 0.2
 batch_size: 32
 learning_rate: 1e-4
-weight_decay: 0.000001
+weight_decay: 0.00001
 checkpoint_dir: checkpoints/
 log_dir: logs/
 max_length: 416

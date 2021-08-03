@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import pandas as pd
 from torch.utils.data import Dataset
+from utils import augment
 
 
 class NumbersDataset(Dataset):
@@ -27,6 +28,9 @@ class NumbersDataset(Dataset):
 
         # read spectrogram
         melspec = torch.from_numpy(np.load(spec_path))
+
+        # apply augmentation
+        melspec = augment(melspec, *self.config["masking"].values())
 
         # prepare label
         label = torch.tensor([int(i) for i in label], dtype=torch.long)
