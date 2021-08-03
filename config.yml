@@ -10,7 +10,7 @@ val_data: val_data.csv
 weights: checkpoints/model_best.pt
 
 # Training
-epochs: 300
+epochs: 100
 val_size: 0.2
 batch_size: 32
 learning_rate: 1e-4
