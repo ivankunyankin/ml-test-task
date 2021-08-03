@@ -14,7 +14,7 @@ from torch.utils.data import DataLoader
 
 from models import QuartzNet
 from dataset import NumbersDataset
-from utils import decode, save_spec, custom_collate, cer
+from utils import decode, save_spec, cer
 
 
 torch.manual_seed(0)
@@ -43,7 +43,7 @@ class Trainer:
 
         # Model stuff
         self.model = QuartzNet().to(self.device)
-        self.criterion = nn.CTCLoss(blank=10)
+        self.criterion = criterion = nn.CrossEntropyLoss()
         self.optimizer = optim.Adam(self.model.parameters(), lr=float(config["learning_rate"]), weight_decay=float(config["weight_decay"]))
 
         if from_checkpoint:
@@ -80,21 +80,17 @@ class Trainer:
         losses = 0
         num_batches = 0
 
-        for batch_idx, (specs, transcripts, input_lengths, label_length) in enumerate(loop):
+        for batch_idx, (specs, labels) in enumerate(loop):
 
             clear_output(wait=True)
             loop.set_description(f"Epoch {step} (train)")
             self.optimizer.zero_grad()
 
             specs = specs.to(self.device)
-            transcripts = transcripts.to(self.device)
-            input_lengths = input_lengths.to(self.device)
-            label_length = label_length.to(self.device)
+            labels = labels.to(self.device)
 
             output = self.model(specs)
-            output = output.permute(2, 0, 1)
-            output = F.log_softmax(output, dim=2)
-            loss = self.criterion(output, transcripts, input_lengths, label_length)
+            loss = self.criterion(output, labels)
             losses += loss
             loss.backward()
             self.optimizer.step()
@@ -114,7 +110,7 @@ class Trainer:
                 self.train_writer.add_image(f"Epoch {step} (train): specs", save_spec(specs[rand_idx].to("cpu").detach()), global_step=batch_idx)
 
         loss = losses / num_batches
-        self.train_writer.add_scalar("CTC loss", loss, global_step=step)
+        self.train_writer.add_scalar("loss", loss, global_step=step)
 
     def val_step(self, step):
 
@@ -125,26 +121,22 @@ class Trainer:
         num_batches = 0
 
         with torch.no_grad():
-            for batch_idx, (specs, transcripts, input_lengths, label_length) in enumerate(loop):
+            for batch_idx, (specs, labels) in enumerate(loop):
 
                 clear_output(wait=True)
                 loop.set_description(f"Epoch {step} (val)")
 
                 specs = specs.to(self.device)
-                transcripts = transcripts.to(self.device)
-                input_lengths = input_lengths.to(self.device)
-                label_length = label_length.to(self.device)
+                labels = labels.to(self.device)
 
                 output = self.model(specs)
-                output = output.permute(2, 0, 1)
-                output = F.log_softmax(output, dim=2)
-                loss = self.criterion(output, transcripts, input_lengths, label_length)
+                loss = self.criterion(output, labels)
                 losses += loss
 
                 loop.set_postfix(loss=loss.item())
                 num_batches += 1
 
-                decoded_preds, decoded_targets = decode(output.permute(1, 0, 2), transcripts, label_length)
+                decoded_preds, decoded_targets = decode(output, labels)
                 error = cer(decoded_targets, decoded_preds)
                 cers += error
 
@@ -158,13 +150,13 @@ class Trainer:
         loss = losses / num_batches
         error = cers / num_batches
 
-        self.val_writer.add_scalar("CTC loss", loss, global_step=step)
+        self.val_writer.add_scalar("loss", loss, global_step=step)
         self.val_writer.add_scalar("CER", error, global_step=step)
 
         return loss
 
     def loader(self, dataset):
-        return DataLoader(dataset, batch_size=self.batch_size, collate_fn=custom_collate)
+        return DataLoader(dataset, batch_size=self.batch_size)
 
     def save_checkpoint(self, path, postfix=""):
 
@@ -180,21 +172,22 @@ class Trainer:
         self.optimizer.load_state_dict(torch.load(os.path.join(path, "optimizer_last.pt"), map_location=map_location))
 
 
-def main():
+# def main():
+#
+#     parser = ArgumentParser()
+#     parser.add_argument('--conf', default="config.yml", help='Path to the configuration file')
+#     parser.add_argument('--from_checkpoint', action="store_true", help='Continue training from the last checkpoint')
+#     args = parser.parse_args()
 
-    parser = ArgumentParser()
-    parser.add_argument('--conf', default="config.yml", help='Path to the configuration file')
-    parser.add_argument('--from_checkpoint', action="store_true", help='Continue training from the last checkpoint')
-    args = parser.parse_args()
-
-    config = yaml.safe_load(open(args.conf))
-    from_checkpoint = args.from_checkpoint
-
-    trainer = Trainer(config, from_checkpoint)
-    print("=> Initialised trainer")
-    print("=> Training...")
-    trainer.train()
+    # config = yaml.safe_load(open(args.conf))
+    # from_checkpoint = args.from_checkpoint
+config = yaml.safe_load(open("config.yml"))
+from_checkpoint = False
+trainer = Trainer(config, from_checkpoint)
+print("=> Initialised trainer")
+print("=> Training...")
+trainer.train()
 
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()

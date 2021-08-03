@@ -10,16 +10,17 @@ val_data: val_data.csv
 weights: checkpoints/model_best.pt
 
 # Training
-epochs: 30
+epochs: 300
 val_size: 0.2
-batch_size: 32
-learning_rate: 1e-4  # constant learning rate value. Omitted if using OneCycleLR
-weight_decay: 0.0001
+batch_size: 1
+learning_rate: 1e-4
+weight_decay: 0.000001
 checkpoint_dir: checkpoints/
 log_dir: logs/
+max_length: 416
 
 spec_params:
-  sr: 22050
+  sr: 16000
   n_mels: 64
   n_fft: 320
   win_length: 320

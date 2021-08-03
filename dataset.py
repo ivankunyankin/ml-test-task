@@ -11,7 +11,7 @@ class NumbersDataset(Dataset):
 
         self.config = config
 
-        data = pd.read_csv(path)
+        data = pd.read_csv(path, dtype={'number': object})
 
         self.collection = []
         for index, row in data.iterrows():
@@ -29,9 +29,6 @@ class NumbersDataset(Dataset):
         melspec = torch.from_numpy(np.load(spec_path))
 
         # prepare label
-        label = torch.tensor([int(i) for i in str(int(label))], dtype=torch.long)
+        label = torch.tensor([int(i) for i in label], dtype=torch.long)
 
-        input_length = melspec.shape[1]
-        label_length = len(label)
-
-        return melspec, label, input_length, label_length
+        return melspec, label

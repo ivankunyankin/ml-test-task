@@ -3,7 +3,7 @@ import torch.nn as nn
 
 class QuartzNet(nn.Module):
 
-    def __init__(self, in_channels=64, out_channels=11):
+    def __init__(self, in_channels=64, out_channels=10):
 
         super(QuartzNet, self).__init__()
 
@@ -22,6 +22,9 @@ class QuartzNet(nn.Module):
             self.B.append(JasperBlock(block_channels[i], block_channels[i+1], block_k[i], pad))
 
         self.C2 = nn.Conv1d(128, out_channels, kernel_size=1)
+        self.C3 = nn.Conv1d(out_channels, out_channels, kernel_size=3, stride=2, padding=1)
+        self.C4 = nn.Conv1d(out_channels, out_channels, kernel_size=64, stride=32, padding=8)
+        # self.C3 = nn.Conv1d(out_channels, out_channels, kernel_size=128, stride=64, padding=16)
 
     def forward(self, x):
 
@@ -31,6 +34,8 @@ class QuartzNet(nn.Module):
             x = block(x)
 
         x = self.C2(x)
+        x = self.C3(x)
+        x = self.C4(x)
 
         return x
 

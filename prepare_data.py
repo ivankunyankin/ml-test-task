@@ -1,5 +1,6 @@
 import os
 import yaml
+import torch
 import librosa
 import argparse
 import numpy as np
@@ -11,6 +12,7 @@ from utils import audio_to_mel
 def main(config):
 
     val_size = config["val_size"]
+    max_length = config["max_length"]
 
     data = pd.read_csv(os.path.join(config["data_dir"], config["csv"]))
 
@@ -23,9 +25,18 @@ def main(config):
         path = os.path.join(config["data_dir"], row['path'])
         audio, sr = librosa.load(path, sr=config["spec_params"]["sr"])
         melspec = audio_to_mel(audio, config["spec_params"])
+
+        padded = torch.zeros((config["spec_params"]["n_mels"], max_length))
+        padded[:, max_length-melspec.shape[1]:] = melspec
+
         spec_name = f"{'.'.join(path.split('.')[:-1])}.npy"
-        np.save(spec_name, melspec)  # save spectrogram
+        np.save(spec_name, padded)  # save spectrogram
         labeled.loc[index, "spect_path"] = spec_name  # save path to spectrogram
+
+        number = str(int(row["number"]))
+        zeros = (6 - len(number)) * "0"
+        labeled.loc[index, "number"] = str(zeros + number)
+
     print("...Done!")
 
     # split the data

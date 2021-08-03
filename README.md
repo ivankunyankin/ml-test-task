@@ -1,6 +1,6 @@
 ## Test task for Myna Labs
 
-I decided to use QuartzNet for model architecture and PyTorch's implementation of CTC loss
+I decided to use fully convolutional model and PyTorch's implementation of cross-entropy loss
 
 
 ## Running
@@ -14,8 +14,13 @@ source env/bin/activate 
 pip3 install -r requirements.txt 
 ```
 
-3. Run the following to start training:
+3. Run the following to start preparing the data:
+```
+python3 prepare_data.py
+```
+The code will generate spectrograms and prepare labels for training
 
+4. Run the following to start training:
 ```
 python3 train.py
 ``` 

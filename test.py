@@ -20,6 +20,7 @@ class Tester:
 
     def __init__(self, config):
 
+        self.config = config
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model = QuartzNet().to(self.device)
 
@@ -35,30 +36,22 @@ class Tester:
 
         with torch.no_grad():
             for index, row in data.iterrows():
-                path = os.path.join(config["data_dir"], row['path'])
-                audio, sr = librosa.load(path, sr=config["spec_params"]["sr"])
-                melspec = audio_to_mel(audio, config["spec_params"])
+                path = os.path.join(self.config["data_dir"], row['path'])
+                audio, sr = librosa.load(path, sr=self.config["spec_params"]["sr"])
+                melspec = audio_to_mel(audio, self.config["spec_params"])
 
                 melspec = melspec.unsqueeze(0).to(self.device)
                 output = self.model(melspec)
 
-                arg_maxes = torch.argmax(output, dim=1)
+                args = torch.argmax(output, dim=1)
 
                 decodes = []
+                for item in args:
+                    pred = "".join(str(int(i)) for i in item)
+                    decodes.append(pred)
 
-                for i, args in enumerate(arg_maxes):  # for each sample in the batch
-                    decode = []
-
-                    for j, index in enumerate(args):  # for each predicted character in the sample
-                        if index != 10:  # if not blank
-                            if j != 0 and index == args[j - 1]:
-                                continue
-                            decode.append(str(index.item()))
-
-                    decodes.append("".join(decode))
-
-                data.loc[int(index), "number"] = decodes[0]  # save predict
-                new_path = f"{'.'.join(path_to_csv.split('.')[:-1])}_pred.npy"
+                data.loc[int(index), "number"] = decodes[0].lstrip('0')  # save predict
+                new_path = f"{'.'.join(path_to_csv.split('.')[:-1])}_pred.csv"
 
         data.to_csv(new_path)
 
@@ -67,7 +60,6 @@ def main():
 
     parser = ArgumentParser()
     parser.add_argument('--conf', default="config.yml", help='Path to the configuration file')
-    parser.add_argument('--from_checkpoint', action="store_true", help='Continue training from the last checkpoint')
     parser.add_argument('--path', help='Path to the csv with testing data paths')
     args = parser.parse_args()
 
