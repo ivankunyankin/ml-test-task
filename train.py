@@ -65,12 +65,12 @@ class Trainer:
             loss = self.val_step(epoch)
 
             self.save_checkpoint(self.checkpoint_dir, postfix="last")
-            print("=> Checkpoint saved")
 
             if best_loss is None:
                 best_loss = loss
             elif loss < best_loss:
                 self.save_checkpoint(self.checkpoint_dir, postfix="best")
+                print("=> Checkpoint updated")
                 best_loss = loss
 
     def train_step(self, step):
@@ -172,22 +172,21 @@ class Trainer:
         self.optimizer.load_state_dict(torch.load(os.path.join(path, "optimizer_last.pt"), map_location=map_location))
 
 
-# def main():
-#
-#     parser = ArgumentParser()
-#     parser.add_argument('--conf', default="config.yml", help='Path to the configuration file')
-#     parser.add_argument('--from_checkpoint', action="store_true", help='Continue training from the last checkpoint')
-#     args = parser.parse_args()
+def main():
 
-    # config = yaml.safe_load(open(args.conf))
-    # from_checkpoint = args.from_checkpoint
-config = yaml.safe_load(open("config.yml"))
-from_checkpoint = False
-trainer = Trainer(config, from_checkpoint)
-print("=> Initialised trainer")
-print("=> Training...")
-trainer.train()
+    parser = ArgumentParser()
+    parser.add_argument('--conf', default="config.yml", help='Path to the configuration file')
+    parser.add_argument('--from_checkpoint', action="store_true", help='Continue training from the last checkpoint')
+    args = parser.parse_args()
+
+    config = yaml.safe_load(open(args.conf))
+    from_checkpoint = args.from_checkpoint
+
+    trainer = Trainer(config, from_checkpoint)
+    print("=> Initialised trainer")
+    print("=> Training...")
+    trainer.train()
 
 
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()

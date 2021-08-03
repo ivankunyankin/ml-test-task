@@ -30,7 +30,7 @@ class NumbersDataset(Dataset):
         melspec = torch.from_numpy(np.load(spec_path))
 
         # apply augmentation
-        melspec = augment(melspec, *self.config["masking"].values())
+        melspec = augment(melspec)
 
         # prepare label
         label = torch.tensor([int(i) for i in label], dtype=torch.long)
