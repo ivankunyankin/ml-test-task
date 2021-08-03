@@ -51,8 +51,7 @@ class Tester:
                     decodes.append(pred)
 
                 data.loc[int(index), "number"] = decodes[0].lstrip('0')  # save predict
-                new_path = f"{'.'.join(path_to_csv.split('.')[:-1])}_pred.csv"
-
+        new_path = f"{'.'.join(path_to_csv.split('.')[:-1])}_pred.csv"
         data.to_csv(new_path)
 
 

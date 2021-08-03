@@ -24,17 +24,15 @@ class QuartzNet(nn.Module):
         self.C2 = nn.Sequential(nn.Conv1d(128, out_channels, kernel_size=1),
                                 nn.BatchNorm1d(out_channels, eps=0.001, momentum=0.1, affine=True, track_running_stats=True),
                                 nn.ReLU(),
-                                nn.Dropout(p=0.2, inplace=False))
+                                nn.Dropout(p=0.1, inplace=False))
 
         self.C3 = nn.Sequential(nn.Conv1d(out_channels, out_channels, kernel_size=3, stride=2, padding=1),
                                 nn.BatchNorm1d(out_channels, eps=0.001, momentum=0.1, affine=True, track_running_stats=True),
                                 nn.ReLU(),
-                                nn.Dropout(p=0.2, inplace=False))
+                                nn.Dropout(p=0.1, inplace=False))
 
         self.C4 = nn.Sequential(nn.Conv1d(out_channels, out_channels, kernel_size=64, stride=32, padding=8),
-                                nn.BatchNorm1d(out_channels, eps=0.001, momentum=0.1, affine=True, track_running_stats=True),
-                                nn.ReLU(),
-                                nn.Dropout(p=0.2, inplace=False))
+                                nn.Sigmoid())
 
         # self.C2 = nn.Conv1d(128, out_channels, kernel_size=1)
         # self.C3 = nn.Conv1d(out_channels, out_channels, kernel_size=3, stride=2, padding=1)

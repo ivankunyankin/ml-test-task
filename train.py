@@ -45,6 +45,11 @@ class Trainer:
         self.model = QuartzNet().to(self.device)
         self.criterion = criterion = nn.CrossEntropyLoss()
         self.optimizer = optim.Adam(self.model.parameters(), lr=float(config["learning_rate"]), weight_decay=float(config["weight_decay"]))
+        self.scheduler = optim.lr_scheduler.OneCycleLR(
+            self.optimizer,
+            max_lr=float(5e-4),
+            steps_per_epoch=len(self.train_loader),
+            epochs=int(self.epochs))
 
         if from_checkpoint:
             self.load_checkpoint(self.checkpoint_dir, map_location=self.device)
@@ -94,6 +99,8 @@ class Trainer:
             losses += loss
             loss.backward()
             self.optimizer.step()
+
+            self.scheduler.step()
 
             loop.set_postfix(loss=loss.item())
             num_batches += 1
